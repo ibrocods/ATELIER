@@ -1,0 +1,6 @@
+{
+  "name": "TailorTrack",
+  "description": "A minimalist, glassmorphic app for tailors to manage custom measurement templates and track customer orders.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

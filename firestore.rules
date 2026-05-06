@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitive Definition
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null && request.auth.uid != null; }
+
+    // DRAFT VALIDATIONS
+    function isValidTemplate(data) {
+      return data.keys().hasAll(['userId', 'name', 'fields', 'createdAt']) && data.keys().size() == 4
+        && data.userId == request.auth.uid
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.fields is list && data.fields.size() > 0 && data.fields.size() <= 100 && data.fields[0] is string
+        && data.createdAt is timestamp;
+    }
+
+    function isValidCustomer(data) {
+      return data.keys().hasAll(['userId', 'name', 'phone', 'email', 'createdAt']) && data.keys().size() == 5
+        && data.userId == request.auth.uid
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.phone is string && data.phone.size() <= 50
+        && data.email is string && data.email.size() <= 200
+        && data.createdAt is timestamp;
+    }
+
+    function isValidMeasurement(data) {
+      return data.keys().hasAll(['userId', 'customerId', 'templateId', 'templateName', 'values', 'createdAt']) && data.keys().size() == 6
+        && data.userId == request.auth.uid
+        && data.customerId is string && data.customerId.size() <= 128
+        && data.templateId is string && data.templateId.size() <= 128
+        && data.templateName is string && data.templateName.size() <= 200
+        && data.values is map
+        && data.createdAt is timestamp;
+    }
+
+    // Rules for Templates
+    match /templates/{templateId} {
+      allow read: if isSignedIn() && isValidId(templateId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(templateId) && isValidTemplate(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(templateId) && isValidTemplate(incoming())
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'fields']);
+      allow delete: if isSignedIn() && isValidId(templateId) && existing().userId == request.auth.uid;
+    }
+
+    // Rules for Customers
+    match /customers/{customerId} {
+      allow read: if isSignedIn() && isValidId(customerId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(customerId) && isValidCustomer(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(customerId) && isValidCustomer(incoming())
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'email']);
+      allow delete: if isSignedIn() && isValidId(customerId) && existing().userId == request.auth.uid;
+    }
+
+    // Rules for Measurements
+    match /measurements/{measurementId} {
+      allow read: if isSignedIn() && isValidId(measurementId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(measurementId) && isValidMeasurement(incoming()) && incoming().createdAt == request.time
+        && exists(/databases/$(database)/documents/customers/$(incoming().customerId))
+        && get(/databases/$(database)/documents/customers/$(incoming().customerId)).data.userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(measurementId) && isValidMeasurement(incoming())
+        && incoming().userId == existing().userId
+        && incoming().customerId == existing().customerId
+        && incoming().templateId == existing().templateId
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['templateName', 'values']);
+      allow delete: if isSignedIn() && isValidId(measurementId) && existing().userId == request.auth.uid;
+    }
+  }
+}

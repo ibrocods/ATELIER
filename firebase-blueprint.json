@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "Template": {
+      "title": "Template",
+      "description": "A measurement template created by the tailor.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The user ID of the template owner" },
+        "name": { "type": "string", "description": "The name of the template" },
+        "fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of measurement fields"
+        },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["userId", "name", "fields", "createdAt"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "A customer of the tailor.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The user ID of the tailor who owns this customer" },
+        "name": { "type": "string", "description": "Customer name" },
+        "phone": { "type": "string", "description": "Customer phone number" },
+        "email": { "type": "string", "description": "Customer email" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["userId", "name", "phone", "email", "createdAt"]
+    },
+    "Measurement": {
+      "title": "Measurement",
+      "description": "A recorded measurement for a customer.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The user ID of the tailor who owns this record" },
+        "customerId": { "type": "string", "description": "The ID of the customer" },
+        "templateId": { "type": "string", "description": "The ID of the template used" },
+        "templateName": { "type": "string", "description": "The name of the template" },
+        "values": { "type": "object", "description": "The measured values" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "required": ["userId", "customerId", "templateId", "templateName", "values", "createdAt"]
+    }
+  },
+  "firestore": {
+    "templates/{templateId}": {
+      "schema": { "$ref": "Template" },
+      "description": "Stores user-defined templates."
+    },
+    "customers/{customerId}": {
+      "schema": { "$ref": "Customer" },
+      "description": "Stores customer details."
+    },
+    "measurements/{measurementId}": {
+      "schema": { "$ref": "Measurement" },
+      "description": "Stores measurement records."
+    }
+  }
+}
