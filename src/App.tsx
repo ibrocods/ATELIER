@@ -998,12 +998,20 @@ const LANDING_SLIDES = [
 function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % LANDING_SLIDES.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+  const handleNext = () => {
+    // If it's the last slide, we don't increment anymore
+    if (currentSlide < LANDING_SLIDES.length - 1) {
+      setCurrentSlide(prev => prev + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentSlide > 0) {
+      setCurrentSlide(prev => prev - 1);
+    }
+  };
+
+  const isLastSlide = currentSlide === LANDING_SLIDES.length - 1;
 
   return (
     <div className="min-h-screen relative bg-[#050505] text-white overflow-hidden flex flex-col justify-end">
@@ -1015,7 +1023,7 @@ function LandingPage() {
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 0.6, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 1.2, ease: "easeInOut" }}
+            transition={{ duration: 0.6, ease: "easeInOut" }} // Quicker transition for snappy user action
             className="absolute inset-0 w-full h-full"
           >
             <img
@@ -1041,10 +1049,10 @@ function LandingPage() {
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
+              initial={{ opacity: 0, x: 30 }} // Slide horizontally for a wizard feel
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.4 }}
             >
               <h1 className="text-4xl md:text-6xl lg:text-6xl font-black tracking-tighter mb-4 leading-[1.1] text-white drop-shadow-xl">
                 {LANDING_SLIDES[currentSlide].title}
@@ -1056,7 +1064,7 @@ function LandingPage() {
           </AnimatePresence>
         </div>
 
-        {/* Dots */}
+        {/* Dots Indicator */}
         <div className="flex gap-2 my-8">
           {LANDING_SLIDES.map((_, idx) => (
             <div 
@@ -1066,15 +1074,56 @@ function LandingPage() {
           ))}
         </div>
 
-        <button onClick={loginWithGoogle} className="group relative w-full sm:w-auto py-4 px-8 text-lg md:text-xl font-bold flex items-center justify-center gap-4 bg-white text-black rounded-2xl hover:bg-white/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-2xl">
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Continue with Google
-        </button>
+        {/* Dynamic Navigation Action Flow */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <AnimatePresence mode="wait">
+            {!isLastSlide ? (
+              // STEPPING BUTTONS: Shows Next / Back navigation
+              <motion.div 
+                key="nav-buttons"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center gap-4 w-full sm:w-auto"
+              >
+                {currentSlide > 0 && (
+                  <button 
+                    onClick={handleBack}
+                    className="py-4 px-6 text-lg font-bold bg-white/10 hover:bg-white/20 text-white rounded-2xl border border-white/10 transition-all duration-300 active:scale-95 flex items-center gap-2"
+                  >
+                    <ArrowLeft className="w-5 h-5" /> Back
+                  </button>
+                )}
+                
+                <button 
+                  onClick={handleNext} 
+                  className="group relative w-full sm:w-auto py-4 px-8 text-lg md:text-xl font-bold flex items-center justify-center gap-2 bg-white text-black rounded-2xl hover:bg-white/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-2xl"
+                >
+                  Get Started <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </motion.div>
+            ) : (
+              // SIGN IN BUTTON: Only drops on the absolute final slide
+              <motion.button 
+                key="google-signin"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                onClick={loginWithGoogle} 
+                className="group relative w-full sm:w-auto py-4 px-8 text-lg md:text-xl font-bold flex items-center justify-center gap-4 bg-white text-black rounded-2xl hover:bg-white/90 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-2xl"
+              >
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
