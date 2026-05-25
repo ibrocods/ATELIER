@@ -1,6 +1,6 @@
 {
   "packageId": "com.ibrocods.atelier",
-  "host": "com.ibrocods.atelier",
+  "host": "atelier-iai.netlify.app",
   "name": "Atelier: Tailor Management System",
   "launcherName": "Atelier",
   "display": "standalone",
@@ -12,7 +12,7 @@
   "navigationDividerColorDark": "#000000",
   "backgroundColor": "#FFFFFF",
   "enableNotifications": true,
-  "startUrl": "https://atelier-iai.netlify.app/",
+  "startUrl": "/",
   "iconUrl": "https://atelier-iai.netlify.app/logo512.png",
   "maskableIconUrl": "https://atelier-iai.netlify.app/logo512.png",
   "splashScreenFadeOutDuration": 300,
@@ -20,8 +20,8 @@
     "path": "C:\\Users\\LENOVO\\Desktop\\WorkSpace\\Projects\\artelier\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1",
-  "appVersionCode": 1,
+  "appVersionName": "6",
+  "appVersionCode": 6,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://atelier-iai.netlify.app/manifest.json",
@@ -43,5 +43,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "1"
+  "appVersion": "6"
 }
